@@ -63,6 +63,7 @@ export function ChartsView({ surveys }: { surveys: Survey[] }) {
 
   return (
     <motion.div
+      id="charts-container"
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -70,7 +71,10 @@ export function ChartsView({ surveys }: { surveys: Survey[] }) {
     >
       {chartData.map((chart, index) => (
         <motion.div key={chart.questionId} variants={itemVariants}>
-          <Card className="col-span-full bg-gradient-to-br from-card to-card/50 border-2 border-border backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card 
+            data-chart-id={chart.questionId}
+            className="col-span-full bg-gradient-to-br from-card to-card/50 border-2 border-border backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-300"
+          >
             <CardHeader className="pb-4">
               <div className="flex items-start gap-4">
                 <motion.div

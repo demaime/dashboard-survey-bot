@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { DataTable } from "@/components/data-table";
 import { ChartsView } from "@/components/charts-view";
+import { ExportPDFButton } from "@/components/export-pdf-button";
 import { HiChartBar, HiDatabase } from "react-icons/hi";
 import { RiSurveyLine } from "react-icons/ri";
 import { Card } from "@/components/ui/card";
@@ -87,17 +88,21 @@ export default function Page() {
                 </p>
               </div>
             </div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <ThemeToggle />
-            </motion.div>
+            <div className="flex items-center gap-3">
+              <ExportPDFButton surveys={surveys} />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <ThemeToggle />
+              </motion.div>
+            </div>
           </motion.div>
 
           {!loading && (
             <motion.div
+              id="stats-cards"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
