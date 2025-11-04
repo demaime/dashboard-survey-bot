@@ -1,8 +1,11 @@
 import { MongoClient } from "mongodb"
 
-const client = new MongoClient(process.env.MONGODB_URI || "")
+// Forzar que esta ruta sea dinámica (runtime)
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
+  const client = new MongoClient(process.env.MONGODB_URI || "")
+  
   try {
     await client.connect()
     const db = client.db("guazu-bot")
