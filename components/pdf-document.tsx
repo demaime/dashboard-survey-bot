@@ -5,11 +5,13 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
 } from "@react-pdf/renderer";
 import { SURVEY_QUESTIONS, getQuestionText, getOptionTitle } from "@/lib/survey-questions";
 
 interface PDFDocumentProps {
   surveys: any[];
+  wordCloudImage?: string | null;
 }
 
 const styles = StyleSheet.create({
@@ -215,9 +217,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#3f51b5",
   },
+  wordCloudImage: {
+    width: "90%",
+    height: "auto",
+    marginHorizontal: "auto",
+    marginTop: 20,
+  },
+  wordCloudIcon: {
+    backgroundColor: "#3f51b5",
+  },
 });
 
-export function PDFDocument({ surveys }: PDFDocumentProps) {
+export function PDFDocument({ surveys, wordCloudImage }: PDFDocumentProps) {
   const formatDate = (dateObj: any) => {
     try {
       if (!dateObj) return "-";
@@ -337,7 +348,8 @@ export function PDFDocument({ surveys }: PDFDocumentProps) {
 
       {/* Gráficos - uno por página */}
       {chartData.map((chart) => (
-        <Page key={chart.questionId} size="A4" orientation="landscape" style={styles.page}>
+        <React.Fragment key={chart.questionId}>
+          <Page size="A4" orientation="landscape" style={styles.page}>
           <View style={styles.questionHeader}>
             <View style={styles.questionIcon}>
               <Text style={styles.questionIconText}>Q{chart.questionId}</Text>
@@ -389,6 +401,39 @@ export function PDFDocument({ surveys }: PDFDocumentProps) {
             </View>
           </View>
         </Page>
+
+        {/* Nube de palabras - Solo después de pregunta 2 */}
+        {chart.questionId === "2" && wordCloudImage && (
+          <Page size="A4" orientation="landscape" style={styles.page}>
+            <View style={styles.questionHeader}>
+              <View style={[styles.questionIcon, styles.wordCloudIcon]}>
+                <Text style={styles.questionIconText}>☁</Text>
+              </View>
+              <View style={styles.questionTextContainer}>
+                <Text style={styles.questionTitle}>Nube de Palabras - Respuestas "Peor"</Text>
+                <Text style={styles.questionText}>¿Por qué creés que la economía va a estar peor?</Text>
+              </View>
+            </View>
+
+            <View style={styles.chartArea}>
+              <Image src={wordCloudImage} style={styles.wordCloudImage} />
+              
+              <View style={styles.statsFooter}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statItemLabel}>RESPUESTAS TEXTO</Text>
+                  <Text style={styles.statItemValue}>
+                    {surveys.filter(s => s.answers && s.answers["2a"]).length}
+                  </Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statItemLabel}>ANÁLISIS</Text>
+                  <Text style={styles.statItemValue}>Nube de palabras</Text>
+                </View>
+              </View>
+            </View>
+          </Page>
+        )}
+      </React.Fragment>
       ))}
     </Document>
   );

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { HiDownload } from "react-icons/hi";
 import { motion } from "framer-motion";
 import { pdf } from "@react-pdf/renderer";
+import { toPng } from "html-to-image";
 import { PDFDocument } from "./pdf-document";
 
 interface ExportPDFButtonProps {
@@ -27,8 +28,29 @@ export function ExportPDFButton({ surveys }: ExportPDFButtonProps) {
     setIsExporting(true);
 
     try {
+      // Capturar la nube de palabras como imagen si existe
+      let wordCloudImage: string | null = null;
+      const wordCloudElement = document.querySelector(
+        '[data-wordcloud="true"]'
+      );
+
+      if (wordCloudElement) {
+        try {
+          wordCloudImage = await toPng(wordCloudElement as HTMLElement, {
+            quality: 1.0,
+            pixelRatio: 2,
+            backgroundColor: "#ffffff",
+            skipFonts: true, // 👈 Ignora fuentes externasimage.png
+          });
+        } catch (err) {
+          console.warn("No se pudo capturar la nube de palabras:", err);
+        }
+      }
+
       // Generar el documento PDF
-      const blob = await pdf(<PDFDocument surveys={surveys} />).toBlob();
+      const blob = await pdf(
+        <PDFDocument surveys={surveys} wordCloudImage={wordCloudImage} />
+      ).toBlob();
 
       // Descargar
       const url = URL.createObjectURL(blob);

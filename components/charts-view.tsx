@@ -6,7 +6,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell }
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { SURVEY_QUESTIONS, getQuestionText, getOptionTitle } from "@/lib/survey-questions"
+import { WordCloud } from "@/components/word-cloud"
+import { cleanText } from "@/lib/stopwords-es"
 import { HiChartBar } from "react-icons/hi"
+import { MdCloud } from "react-icons/md"
 
 interface Survey {
   answers: Record<string, string>
@@ -46,6 +49,27 @@ export function ChartsView({ surveys }: { surveys: Survey[] }) {
     }))
   }, [surveys])
 
+  // Procesar respuestas de texto para nube de palabras (pregunta 2a)
+  const wordCloudData = useMemo(() => {
+    const wordFrequency: Record<string, number> = {}
+
+    surveys.forEach((survey) => {
+      const textAnswer = survey.answers["2a"]
+      if (textAnswer && typeof textAnswer === "string") {
+        const words = cleanText(textAnswer)
+        words.forEach((word) => {
+          wordFrequency[word] = (wordFrequency[word] || 0) + 1
+        })
+      }
+    })
+
+    // Convertir a array y ordenar por frecuencia
+    return Object.entries(wordFrequency)
+      .map(([text, value]) => ({ text, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 50) // Top 50 palabras
+  }, [surveys])
+
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -70,11 +94,12 @@ export function ChartsView({ surveys }: { surveys: Survey[] }) {
       className="grid gap-6"
     >
       {chartData.map((chart, index) => (
-        <motion.div key={chart.questionId} variants={itemVariants}>
-          <Card 
-            data-chart-id={chart.questionId}
-            className="col-span-full bg-gradient-to-br from-card to-card/50 border-2 border-border backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-300"
-          >
+        <>
+          <motion.div key={chart.questionId} variants={itemVariants}>
+            <Card 
+              data-chart-id={chart.questionId}
+              className="col-span-full bg-gradient-to-br from-card to-card/50 border-2 border-border backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-300"
+            >
             <CardHeader className="pb-4">
               <div className="flex items-start gap-4">
                 <motion.div
@@ -205,6 +230,78 @@ export function ChartsView({ surveys }: { surveys: Survey[] }) {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Nube de palabras - Solo para pregunta 2 */}
+        {chart.questionId === "2" && wordCloudData.length > 0 && (
+          <motion.div key="wordcloud-2a" variants={itemVariants}>
+            <Card className="col-span-full bg-gradient-to-br from-card to-card/50 border-2 border-border backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader className="pb-4">
+                <div className="flex items-start gap-4">
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 200, delay: (index + 0.5) * 0.1 }}
+                    className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0"
+                  >
+                    <MdCloud className="text-2xl text-primary-foreground" />
+                  </motion.div>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                      Nube de Palabras - Respuestas "Peor"
+                    </CardTitle>
+                    <CardDescription className="text-base mt-1 font-medium">
+                      ¿Por qué creés que la economía va a estar peor?
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 rounded-lg" />
+                  <div className="min-h-[400px] flex items-center justify-center" data-wordcloud="true">
+                    <WordCloud words={wordCloudData} width={800} height={400} />
+                  </div>
+                </div>
+
+                {/* Stats summary */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + (index + 0.5) * 0.1 }}
+                  className="mt-6 pt-4 border-t border-border/50"
+                >
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                        Respuestas Texto
+                      </p>
+                      <p className="text-2xl font-bold text-primary mt-1">
+                        {surveys.filter(s => s.answers["2a"]).length}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                        Palabras Únicas
+                      </p>
+                      <p className="text-2xl font-bold text-accent mt-1">
+                        {wordCloudData.length}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                        Más Frecuente
+                      </p>
+                      <p className="text-2xl font-bold text-foreground mt-1">
+                        {wordCloudData[0]?.text || "-"}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </>
       ))}
     </motion.div>
   )

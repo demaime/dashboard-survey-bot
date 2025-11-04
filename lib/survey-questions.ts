@@ -20,6 +20,11 @@ export const SURVEY_QUESTIONS = {
       { id: "peor", title: "📉 Peor" },
     ],
   },
+  "2a": {
+    type: "text",
+    text: "¿Por qué creés que va a estar peor?",
+    conditional: { question: "2", answer: "peor" },
+  },
   3: {
     type: "list",
     text: "¿Cuál es el máximo nivel de estudios que alcanzaste?",

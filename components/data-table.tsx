@@ -19,6 +19,7 @@ interface Survey {
 export function DataTable({ surveys }: { surveys: Survey[] }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+  const [sortMode, setSortMode] = useState<"recent" | "oldest" | "alpha">("recent")
 
   const filteredSurveys = useMemo(() => {
     return surveys.filter((survey) => {
@@ -30,6 +31,32 @@ export function DataTable({ surveys }: { surveys: Survey[] }) {
       )
     })
   }, [surveys, searchTerm])
+
+  const getTimestamp = (dateObj: any): number => {
+    try {
+      if (!dateObj) return 0
+      if (typeof dateObj === "string") return new Date(dateObj).getTime()
+      if (dateObj instanceof Date) return dateObj.getTime()
+      if (dateObj.$date?.$numberLong) return Number.parseInt(dateObj.$date.$numberLong)
+      if (typeof dateObj.$date === "string") return new Date(dateObj.$date).getTime()
+      return 0
+    } catch {
+      return 0
+    }
+  }
+
+  const sortedSurveys = useMemo(() => {
+    const copy = [...filteredSurveys]
+    copy.sort((a, b) => {
+      if (sortMode === "alpha") {
+        return a.userName.localeCompare(b.userName, "es", { sensitivity: "base" })
+      }
+      const aTs = getTimestamp(a.createdAt)
+      const bTs = getTimestamp(b.createdAt)
+      return sortMode === "recent" ? bTs - aTs : aTs - bTs
+    })
+    return copy
+  }, [filteredSurveys, sortMode])
 
   const toggleRow = (id: string) => {
     const newExpanded = new Set(expandedRows)
@@ -73,21 +100,6 @@ export function DataTable({ surveys }: { surveys: Survey[] }) {
     }
   }
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    show: { opacity: 1, x: 0 },
-  }
-
   return (
     <div className="space-y-6">
       <motion.div
@@ -114,16 +126,33 @@ export function DataTable({ surveys }: { surveys: Survey[] }) {
           <HiCheckCircle className="text-primary" />
           {filteredSurveys.length} de {surveys.length} encuestas
         </p>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground font-medium">Ordenar</span>
+          <select
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as any)}
+            className="h-9 rounded-md bg-card/50 border border-border/50 text-sm px-3 text-foreground"
+          >
+            <option value="recent">Más recientes primero</option>
+            <option value="oldest">Más antiguas primero</option>
+            <option value="alpha">Alfabético (nombre)</option>
+          </select>
+        </div>
       </motion.div>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-        className="space-y-3"
-      >
-        {filteredSurveys.map((survey, index) => (
-          <motion.div key={survey._id} variants={itemVariants}>
+      <div className="space-y-3">
+        {sortedSurveys.map((survey) => (
+          <motion.div
+            key={survey._id}
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{
+              layout: { duration: 0.3, ease: "easeInOut" },
+              opacity: { duration: 0.2 }
+            }}
+          >
             <Card className="overflow-hidden bg-gradient-to-br from-card to-card/50 border-2 border-border backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300">
               <motion.button
                 onClick={() => toggleRow(survey._id)}
@@ -132,14 +161,9 @@ export function DataTable({ surveys }: { surveys: Survey[] }) {
                 whileTap={{ scale: 0.99 }}
               >
                 <div className="flex-1 flex items-center gap-4">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center flex-shrink-0"
-                  >
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center flex-shrink-0">
                     <HiUser className="text-xl text-primary" />
-                  </motion.div>
+                  </div>
                   <div className="flex-1 text-left space-y-1">
                     <p className="font-semibold text-foreground text-lg">{survey.userName}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -206,7 +230,7 @@ export function DataTable({ surveys }: { surveys: Survey[] }) {
             </Card>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
 
       {filteredSurveys.length === 0 && (
         <motion.div
