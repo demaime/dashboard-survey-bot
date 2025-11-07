@@ -12,7 +12,7 @@ import { HiChartBar } from "react-icons/hi"
 import { MdCloud } from "react-icons/md"
 
 interface Survey {
-  answers: Record<string, string>
+  answers?: Record<string, string> | null
 }
 
 export function ChartsView({ surveys }: { surveys: Survey[] }) {
@@ -31,6 +31,8 @@ export function ChartsView({ surveys }: { surveys: Survey[] }) {
 
     // Count responses
     surveys.forEach((survey) => {
+      if (!survey?.answers) return
+
       Object.entries(survey.answers).forEach(([questionId, answerId]) => {
         if (data[questionId] && typeof data[questionId][answerId] === "number") {
           data[questionId][answerId]++
@@ -54,7 +56,7 @@ export function ChartsView({ surveys }: { surveys: Survey[] }) {
     const wordFrequency: Record<string, number> = {}
 
     surveys.forEach((survey) => {
-      const textAnswer = survey.answers["2a"]
+      const textAnswer = survey?.answers?.["2a"]
       if (textAnswer && typeof textAnswer === "string") {
         const words = cleanText(textAnswer)
         words.forEach((word) => {
@@ -276,7 +278,7 @@ export function ChartsView({ surveys }: { surveys: Survey[] }) {
                         Respuestas Texto
                       </p>
                       <p className="text-2xl font-bold text-primary mt-1">
-                        {surveys.filter(s => s.answers["2a"]).length}
+                        {surveys.filter((s) => s?.answers?.["2a"]).length}
                       </p>
                     </div>
                     <div className="text-center">

@@ -11,7 +11,7 @@ interface Survey {
   _id: string
   phoneNumber: string
   userName: string
-  answers: Record<string, string>
+  answers?: Record<string, string> | null
   createdAt: any
   status: string
 }
@@ -27,7 +27,10 @@ export function DataTable({ surveys }: { surveys: Survey[] }) {
       return (
         survey.phoneNumber.toLowerCase().includes(searchLower) ||
         survey.userName.toLowerCase().includes(searchLower) ||
-        Object.values(survey.answers).some((answer) => getOptionTitle("1", answer).toLowerCase().includes(searchLower))
+        (survey.answers &&
+          Object.values(survey.answers).some((answer) =>
+            getOptionTitle("1", String(answer ?? "")).toLowerCase().includes(searchLower)
+          ))
       )
     })
   }, [surveys, searchTerm])
@@ -199,7 +202,7 @@ export function DataTable({ surveys }: { surveys: Survey[] }) {
                     className="overflow-hidden"
                   >
                     <div className="px-5 py-5 bg-gradient-to-br from-muted/30 to-muted/10 border-t border-border/50 space-y-4">
-                      {Object.entries(survey.answers).map(([questionId, answer], idx) => (
+                      {Object.entries(survey.answers ?? {}).map(([questionId, answer], idx) => (
                         <motion.div
                           key={questionId}
                           initial={{ opacity: 0, x: -10 }}
@@ -218,7 +221,7 @@ export function DataTable({ surveys }: { surveys: Survey[] }) {
                           <div className="flex items-center gap-2 pt-1">
                             <HiCheckCircle className="text-accent flex-shrink-0" />
                             <p className="text-sm font-semibold text-accent">
-                              {getOptionTitle(questionId, answer)}
+                              {getOptionTitle(questionId, String(answer ?? ""))}
                             </p>
                           </div>
                         </motion.div>

@@ -31,3 +31,4 @@ export function cleanText(text: string): string[] {
     .filter(word => !STOPWORDS_ES.has(word)); // Filtrar stopwords
 }
 
+
