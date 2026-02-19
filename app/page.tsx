@@ -8,7 +8,6 @@ import { DataTable } from "@/components/data-table";
 import { ChartsView } from "@/components/charts-view";
 import { ExportPDFButton } from "@/components/export-pdf-button";
 import { HiChartBar, HiDatabase } from "react-icons/hi";
-import { RiSurveyLine } from "react-icons/ri";
 import { Card } from "@/components/ui/card";
 
 export default function Page() {
@@ -20,7 +19,7 @@ export default function Page() {
       try {
         const res = await fetch("/api/surveys");
         const data = await res.json();
-        setSurveys(data);
+        setSurveys(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -75,9 +74,9 @@ export default function Page() {
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                className="w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30"
+                className="w-14 h-14"
               >
-                <RiSurveyLine className="text-3xl text-primary-foreground" />
+                <img src="/logo.png" alt="Guazú logo" className="w-full h-full object-contain" />
               </motion.div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
@@ -128,7 +127,7 @@ export default function Page() {
                     </motion.p>
                   </div>
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <RiSurveyLine className="text-2xl text-primary" />
+                    <HiDatabase className="text-2xl text-primary" />
                   </div>
                 </div>
               </Card>
