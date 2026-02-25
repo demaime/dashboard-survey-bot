@@ -291,6 +291,7 @@ export function PDFDocument({ surveys, wordCloudImage }: PDFDocumentProps) {
     });
 
     surveys.forEach((survey) => {
+      if (!survey?.answers) return;
       Object.entries(survey.answers).forEach(([questionId, answerId]) => {
         if (data[questionId] && typeof data[questionId][answerId] === "number") {
           data[questionId][answerId]++;
@@ -309,9 +310,8 @@ export function PDFDocument({ surveys, wordCloudImage }: PDFDocumentProps) {
   };
 
   const chartData = getChartData();
-  const maxValue = Math.max(
-    ...chartData.flatMap((chart) => chart.data.map((d) => d.value))
-  );
+  const allValues = chartData.flatMap((chart) => chart.data.map((d) => d.value));
+  const maxValue = allValues.length > 0 ? Math.max(...allValues) : 1;
 
   return (
     <Document>
@@ -422,7 +422,7 @@ export function PDFDocument({ surveys, wordCloudImage }: PDFDocumentProps) {
                 <View style={styles.statItem}>
                   <Text style={styles.statItemLabel}>RESPUESTAS TEXTO</Text>
                   <Text style={styles.statItemValue}>
-                    {surveys.filter(s => s.answers && s.answers["2a"]).length}
+                    {surveys.filter(s => s?.answers?.["2a"]).length}
                   </Text>
                 </View>
                 <View style={styles.statItem}>
